@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, jsonify
+from flask import Blueprint, render_template, request, flash, jsonify, send_file
 from flask_login import login_required, current_user
 from .models import Memory
 from . import db
@@ -243,6 +243,26 @@ Given the following dict data of ID, description, timestamp. Highlight what the 
     resp = api_resp["choices"][0]["message"]["content"]
     
     return jsonify({"highlight": resp})
+
+@views.route("/api/text-to-speech", methods=["POST"])
+def tts():
+    text = request.json.get("text")
+    
+    # OpenAI API request for TTS
+    try:
+        data = {
+            "model": "tts-1",
+            "input": text,
+            "voice": "alloy"
+        }
+        
+        audio_data = utils.cloudflare_ai_gateway("/audio/speech", data)
+
+        return audio_data
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # @views.route('/delete-note', methods=['POST'])
 # def delete_note():  
