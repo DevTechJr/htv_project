@@ -135,6 +135,11 @@ Return the following columns you have filled in as a dictionary. This should be 
     memory = Memory.query.get(entryid)
     return jsonify(memory.to_dict())
 
+@views.route("/api/latest", methods=["GET"])
+def latest():
+    memories = Memory.query.order_by(Memory.timestamp.desc()).limit(1).all()
+    return jsonify([memory.to_dict() for memory in memories])
+
 # @views.route('/delete-note', methods=['POST'])
 # def delete_note():  
 #     note = json.loads(request.form) # this function expects a JSON from the INDEX.js file 
