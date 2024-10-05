@@ -64,6 +64,7 @@ Given the image. Generate the following columns for the image.
                  
 caption: A short description about the image.
 description: A long description that is super descriptive about the image which can help the user recall what has happened.
+in_danger: Yes / No. If anything in the image is potentially making the photographer in danger, return Yes. Otherwise, return No.
 
 Return the following columns you have filled in as a dictionary. This should be the format of your response. Do not include any other text or information in your response. do not format it to appear as json markdown either.
                  """},
@@ -78,13 +79,14 @@ Return the following columns you have filled in as a dictionary. This should be 
     resp = json.loads(api_resp["choices"][0]["message"]["content"])
     caption = resp.get("caption", "")
     description = resp.get("description", "")
+    in_danger = resp.get("in_danger", "No")
 
     # add to database
     newMemory = Memory(caption=caption, descp=description, locationx=locationX, locationy=locationY, voice_note=voice_note, file_url=file_url)
     db.session.add(newMemory)
     db.session.commit()
 
-    return jsonify({"caption": caption, "description": description})
+    return jsonify({"caption": caption, "description": description, "in_danger": in_danger, "file_url": file_url})
 
 @views.route("/api/search-keyword", methods=["POST"])
 def search_keyword():
