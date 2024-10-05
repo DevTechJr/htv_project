@@ -153,7 +153,27 @@ def summary():
         extract('day', Memory.timestamp) == today.day
     ).order_by(Memory.timestamp).all()
 
-    return jsonify([memory.to_dict() for memory in memories])
+    dict_captions_and_timestamp = [{"id": id, "description": description, "timestamp": str(timestamp)} for id, description, timestamp in memories]
+    
+    data = {
+        "model": "gpt-4o-mini",
+        "messages": [
+        {
+          "role": "user",
+          "content": [
+                {"type": "text", "text": f"""
+Given the following dict data of ID, description, timestamp. Summarize what the photographer has seen today. You can combine similar events. Make the story brief but informative and interesting. Today is {str(today)}.
+
+{json.dumps(dict_captions_and_timestamp)}
+                 """},
+          ]
+        }
+    ]
+    }
+    api_resp = utils.cloudflare_ai_gateway("/chat/completions", data)
+    resp = json.loads(api_resp["choices"][0]["message"]["content"])
+    
+    return jsonify({"summary": resp})
 
 # @views.route('/delete-note', methods=['POST'])
 # def delete_note():  
