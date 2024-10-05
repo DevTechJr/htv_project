@@ -4,3 +4,6 @@ flask-login
 requests
 flask_admin
 boto3
+gunicorn
+SQLAlchemy
+python-dotenv

@@ -11,16 +11,35 @@ import base64
 from datetime import datetime
 from io import BytesIO
 from sqlalchemy import extract
+from dotenv import load_dotenv
+import os
 views = Blueprint('views', __name__)
 
-config = json.loads(open("config.json", "r").read())
+# config = json.loads(open("config.json", "r").read())
 
+# session = boto3.session.Session()
+# s3_client = session.client(
+#     's3',
+#     endpoint_url=config["r2_endpoint"],
+#     aws_access_key_id=config["r2_key_id"],
+#     aws_secret_access_key=config["r2_key_access_key"]
+# )
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Access the environment variables
+r2_endpoint = os.getenv("r2_endpoint")
+r2_key_id = os.getenv("r2_key_id")
+r2_key_access_key = os.getenv("r2_key_access_key")
+
+# Initialize boto3 session and S3 client
 session = boto3.session.Session()
 s3_client = session.client(
     's3',
-    endpoint_url=config["r2_endpoint"],
-    aws_access_key_id=config["r2_key_id"],
-    aws_secret_access_key=config["r2_key_access_key"]
+    endpoint_url=r2_endpoint,
+    aws_access_key_id=r2_key_id,
+    aws_secret_access_key=r2_key_access_key
 )
 
 
@@ -186,6 +205,11 @@ Given the following dict data of ID, description, timestamp. Summarize what the 
     
     return jsonify({"summary": resp})
 
+@views.route("/api/getrecords", methods=["GET"])
+def get_records():
+    memories = Memory.query.order_by(Memory.timestamp.desc()).all()
+    return jsonify([memory.to_dict() for memory in memories])
+
 @views.route("/api/highlight", methods=["GET"])
 def highlight():
     # Get today's date
@@ -198,19 +222,7 @@ def highlight():
         extract('day', Memory.timestamp) == today.day
     ).order_by(Memory.timestamp).all()
     memories = [memory.to_dict() for memory in memories]
-    # print(memories[0].keys())
 
-    # Convert the timestamp to a string like "2024 05 10"
-    # formatted_memories = []
-    # for memory in memories:
-    #     print(memory)
-    #     # memory_dict = memory.to_dict()  # Convert memory to a dictionary
-    #     memory['timestamp'] = memory["timestamp"].strftime('%Y %m %d')  # Format the timestamp
-    #     formatted_memories.append(memory)
-    # print(formatted_memories)
-
-    # dict_captions_and_timestamp = [{"id": id, "descp": description, "timestamp": str(timestamp)} for id, description, timestamp in memories]
-    
     data = {
         "model": "gpt-4o-mini",
         "messages": [
