@@ -58,7 +58,7 @@ def home():
 
 @views.route('/api/new-memory', methods=['POST'])
 def new_memory():
-    data = request.json()
+    data = request.json
     base64_image = data.get('base64_image')
     locationX = data.get('locationX')
     locationY = data.get('locationY')
