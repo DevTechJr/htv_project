@@ -186,6 +186,51 @@ Given the following dict data of ID, description, timestamp. Summarize what the 
     
     return jsonify({"summary": resp})
 
+@views.route("/api/highlight", methods=["GET"])
+def highlight():
+    # Get today's date
+    today = datetime.now()
+
+    # Filter memories based on the day, month, and year of today's timestamp
+    memories = Memory.query.filter(
+        extract('year', Memory.timestamp) == today.year,
+        extract('month', Memory.timestamp) == today.month,
+        extract('day', Memory.timestamp) == today.day
+    ).order_by(Memory.timestamp).all()
+    memories = [memory.to_dict() for memory in memories]
+    # print(memories[0].keys())
+
+    # Convert the timestamp to a string like "2024 05 10"
+    # formatted_memories = []
+    # for memory in memories:
+    #     print(memory)
+    #     # memory_dict = memory.to_dict()  # Convert memory to a dictionary
+    #     memory['timestamp'] = memory["timestamp"].strftime('%Y %m %d')  # Format the timestamp
+    #     formatted_memories.append(memory)
+    # print(formatted_memories)
+
+    # dict_captions_and_timestamp = [{"id": id, "descp": description, "timestamp": str(timestamp)} for id, description, timestamp in memories]
+    
+    data = {
+        "model": "gpt-4o-mini",
+        "messages": [
+        {
+          "role": "user",
+          "content": [
+                {"type": "text", "text": f"""
+Given the following dict data of ID, description, timestamp. Highlight what the user has seen today. Everything they have seen are FIRST PERSON POV memories/experiences they have had today. Make the highlight brief but interesting. Today is {str(today)}. Their name is Baron, be personal and refer to them as "you". Below are a list of moments they have been in where they witnessed things.
+
+{json.dumps(memories)}
+                 """},
+          ]
+        }
+    ]
+    }
+    api_resp = utils.cloudflare_ai_gateway("/chat/completions", data)
+    resp = api_resp["choices"][0]["message"]["content"]
+    
+    return jsonify({"highlight": resp})
+
 # @views.route('/delete-note', methods=['POST'])
 # def delete_note():  
 #     note = json.loads(request.form) # this function expects a JSON from the INDEX.js file 
