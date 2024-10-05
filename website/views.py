@@ -10,6 +10,7 @@ import uuid
 import base64
 from datetime import datetime
 from io import BytesIO
+from sqlalchemy import extract
 views = Blueprint('views', __name__)
 
 config = json.loads(open("config.json", "r").read())
@@ -138,6 +139,20 @@ Return the following columns you have filled in as a dictionary. This should be 
 @views.route("/api/latest", methods=["GET"])
 def latest():
     memories = Memory.query.order_by(Memory.timestamp.desc()).limit(1).all()
+    return jsonify([memory.to_dict() for memory in memories])
+
+@views.route("/api/summary", methods=["GET"])
+def summary():
+    # Get today's date
+    today = datetime.now()
+
+    # Filter memories based on the day, month, and year of today's timestamp
+    memories = Memory.query.filter(
+        extract('year', Memory.timestamp) == today.year,
+        extract('month', Memory.timestamp) == today.month,
+        extract('day', Memory.timestamp) == today.day
+    ).order_by(Memory.timestamp).all()
+
     return jsonify([memory.to_dict() for memory in memories])
 
 # @views.route('/delete-note', methods=['POST'])
