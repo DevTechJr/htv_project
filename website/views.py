@@ -56,12 +56,13 @@ def home():
 
     return render_template("home.html", user=current_user)
 
-@views.route('/api/new-memory', methods=['GET'])
-def new_mermory():
-    base64_image = request.form.get('base64_image', utils.image_test)
-    locationX = request.form.get('locationX', '43.7867324')
-    locationY = request.form.get('locationY', '-79.1908556')
-    voice_note = request.form.get('voice_note', '')
+@views.route('/api/new-memory', methods=['POST'])
+def new_memory():
+    data = request.json
+    base64_image = data.get('base64_image')
+    locationX = data.get('locationX')
+    locationY = data.get('locationY')
+    voice_note = data.get('voice_note', '')
     image_data = base64.b64decode(base64_image)
     file_name = f"{uuid.uuid4()}.png"
     
