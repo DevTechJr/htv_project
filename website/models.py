@@ -21,6 +21,18 @@ class Memory(db.Model):
     locationx = db.Column(db.String(100000000), nullable=True)
     locationy = db.Column(db.String(100000000), nullable=True)
     voice_note = db.Column(db.String(100000000), nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "caption": self.caption,
+            "descp": self.descp,
+            "file_url": self.file_url,
+            "locationx": self.locationx,
+            "locationy": self.locationy,
+            "voice_note": self.voice_note,
+            "timestamp": str(self.timestamp)
+        }
    
 class MemoryView(ModelView):
     pass

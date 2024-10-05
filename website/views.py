@@ -94,18 +94,17 @@ def search_keyword():
 
 @views.route("/api/search-ai", methods=["GET"])
 def search_ai():
-    text = request.form.get("text", "A cool student")
+    text = request.form.get("text", "A cool student.")
 
     all_captions_and_timestamp = []
     memories = Memory.query.all()
     for memory in memories:
         caption = memory.caption
         timestamp = memory.timestamp
-        if text in caption:
-            all_captions_and_timestamp.append((memory.id, caption, timestamp))
+        all_captions_and_timestamp.append((memory.id, caption, timestamp))
     
     today = datetime.now().strftime("%Y-%m-%d")
-    dict_captions_and_timestamp = [{"id": id, "caption": caption, "timestamp": timestamp} for id, caption, timestamp in all_captions_and_timestamp]
+    dict_captions_and_timestamp = [{"id": id, "caption": caption, "timestamp": str(timestamp)} for id, caption, timestamp in all_captions_and_timestamp]
     
     data = {
         "model": "gpt-4o-mini",
@@ -114,9 +113,11 @@ def search_ai():
           "role": "user",
           "content": [
                 {"type": "text", "text": f"""
-Given the following dict data of ID, caption, timestamp. Find the ID of the most relevant entry to the user's query. Consider both caption and timestamp. Today is {today}.
+Given the following dict data of ID, caption, timestamp. Find the ID of the most relevant entry to the user's query. Consider both caption and timestamp. You can do fuzzy matching if there is no exactly matching result. Today is {str(today)}.
 
 {json.dumps(dict_captions_and_timestamp)}
+
+Query: "{text}"
 
 Return the following columns you have filled in as a dictionary. This should be the format of your response. Do not include any other text or information in your response. do not format it to appear as json markdown either.
                  """},
@@ -125,7 +126,12 @@ Return the following columns you have filled in as a dictionary. This should be 
     ]
     }
     api_resp = utils.cloudflare_ai_gateway("/chat/completions", data)
-    return api_resp
+    resp = json.loads(api_resp["choices"][0]["message"]["content"])
+    if "id" not in resp:
+        return jsonify({})
+    entryid = resp["id"]
+    memory = Memory.query.get(entryid)
+    return jsonify(memory.to_dict())
 
 # @views.route('/delete-note', methods=['POST'])
 # def delete_note():  
