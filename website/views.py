@@ -152,8 +152,19 @@ def summary():
         extract('month', Memory.timestamp) == today.month,
         extract('day', Memory.timestamp) == today.day
     ).order_by(Memory.timestamp).all()
+    memories = [memory.to_dict() for memory in memories]
+    # print(memories[0].keys())
 
-    dict_captions_and_timestamp = [{"id": id, "description": description, "timestamp": str(timestamp)} for id, description, timestamp in memories]
+    # Convert the timestamp to a string like "2024 05 10"
+    # formatted_memories = []
+    # for memory in memories:
+    #     print(memory)
+    #     # memory_dict = memory.to_dict()  # Convert memory to a dictionary
+    #     memory['timestamp'] = memory["timestamp"].strftime('%Y %m %d')  # Format the timestamp
+    #     formatted_memories.append(memory)
+    # print(formatted_memories)
+
+    # dict_captions_and_timestamp = [{"id": id, "descp": description, "timestamp": str(timestamp)} for id, description, timestamp in memories]
     
     data = {
         "model": "gpt-4o-mini",
@@ -162,16 +173,16 @@ def summary():
           "role": "user",
           "content": [
                 {"type": "text", "text": f"""
-Given the following dict data of ID, description, timestamp. Summarize what the photographer has seen today. You can combine similar events. Make the story brief but informative and interesting. Today is {str(today)}.
+Given the following dict data of ID, description, timestamp. Summarize what the user has seen today. Everything they have seen are FIRST PERSON POV memories/experiences they have had today. You can combine similar events. Make the summary brief but informative and interesting. Today is {str(today)}. Their name is Baron, be personal and refer to them as "you". Below are a list of moments they have been in where they witnessed things.
 
-{json.dumps(dict_captions_and_timestamp)}
+{json.dumps(memories)}
                  """},
           ]
         }
     ]
     }
     api_resp = utils.cloudflare_ai_gateway("/chat/completions", data)
-    resp = json.loads(api_resp["choices"][0]["message"]["content"])
+    resp = api_resp["choices"][0]["message"]["content"]
     
     return jsonify({"summary": resp})
 
