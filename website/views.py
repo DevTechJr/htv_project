@@ -62,7 +62,7 @@ def new_memory():
     base64_image = data.get('base64_image')
     locationX = data.get('locationX')
     locationY = data.get('locationY')
-    voice_note = data.get('voice_note', '')
+    # voice_note = data.get('voice_note', '')
     image_data = base64.b64decode(base64_image)
     file_name = f"{uuid.uuid4()}.png"
     
@@ -103,7 +103,7 @@ Return the following columns you have filled in as a dictionary. This should be 
     in_danger = resp.get("in_danger", "No")
 
     # add to database
-    newMemory = Memory(caption=caption, descp=description, locationx=locationX, locationy=locationY, voice_note=voice_note, file_url=file_url)
+    newMemory = Memory(caption=caption, descp=description, locationx=locationX, locationy=locationY, voice_note=in_danger, file_url=file_url)
     db.session.add(newMemory)
     db.session.commit()
 
@@ -117,7 +117,7 @@ def search_keyword():
 
 @views.route("/api/search-ai", methods=["GET"])
 def search_ai():
-    text = request.form.get("text", "A cool student.")
+    text = request.json.get("text")
 
     all_captions_and_timestamp = []
     memories = Memory.query.all()
@@ -136,7 +136,7 @@ def search_ai():
           "role": "user",
           "content": [
                 {"type": "text", "text": f"""
-Given the following dict data of ID, caption, timestamp. Find the ID of the most relevant entry to the user's query. Consider both caption and timestamp. You can do fuzzy matching if there is no exactly matching result. Today is {str(today)}.
+Given the following dict data of ID, caption, timestamp. Find the ID of the most relevant entry to the user's query. Consider both caption and timestamp. You can do fuzzy matching if there is no exactly matching result. Today is {str(today)}. If you cannot find any relevant memory or entry from the database, return an empty dictionary with id of "-1". Below are a list of moments they have been in where they witnessed things.
 
 {json.dumps(dict_captions_and_timestamp)}
 

@@ -21,6 +21,7 @@ class Memory(db.Model):
     locationx = db.Column(db.String(100000000), nullable=True)
     locationy = db.Column(db.String(100000000), nullable=True)
     voice_note = db.Column(db.String(100000000), nullable=True)
+    
 
     def to_dict(self):
         return {
